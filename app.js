@@ -746,10 +746,6 @@ function pageOpt(){
     <div class="section-title">KPI Tree</div>
     <div class="card" id="kpi-tree"></div>
 
-    <div class="section-title">MBA Techniques Applied</div>
-    <div class="card">
-      <div class="insight-list" id="techniques"></div>
-    </div>
   </section>`);
   main.appendChild(p);
 
@@ -867,21 +863,8 @@ function pageOpt(){
       </div>
     </div>`;
 
-  const techniques = [
-    'SCOR (Supply Chain Operations Reference) Model — page structure mirrors Plan/Source/Make/Deliver stages.',
-    'ABC Inventory Analysis — SKUs classified by revenue contribution (Inventory page).',
-    'Pareto Analysis (80/20) — supplier concentration of defects and cost (this page).',
-    'Supplier Performance Scorecard — weighted composite ranking (Supplier page).',
-    'Inventory Turnover Analysis — turnover, days-of-inventory, fill rate (Inventory page).',
-    'Cost-to-Serve — shipping and logistics cost broken out by carrier, mode, and route (Logistics page).',
-    'Lead Time Analysis — order and manufacturing lead time tracked across every page.',
-    'Root Cause Analysis — drill-through from high defect rate to supplier / market / mode (this page).',
-    'Demand vs Inventory Analysis — stock vs sales scatter and bubble chart (Inventory page).',
-    'Capacity Utilization — production volume by supplier (Manufacturing page).',
-    'Defect Rate & Quality Control — inspection pass/fail/pending tracking (Manufacturing page).',
-    'Transportation Efficiency Analysis — carrier and route comparison (Logistics page).'
-  ];
-  document.getElementById('techniques').innerHTML = techniques.map(t=>`<div class="insight"><div class="ii">✓</div><p>${t}</p></div>`).join('');
+  const techniques = [];
+  //document.getElementById('techniques').innerHTML = techniques.map(t=>`<div class="insight"><div class="ii">✓</div><p>${t}</p></div>`).join('');
 }
 
 /* ---------------------------------------------------------- */
@@ -891,16 +874,16 @@ document.getElementById('page-exec').classList.add('active');
 } // end initDashboard(RAW)
 
 /* ============================================================
-   DATA LOADER — reads an .xlsx workbook client-side (SheetJS),
-   converts the first sheet to row objects, trims header keys,
-   and hands the array to initDashboard(). No data ever leaves
-   the browser.
+   DATA LOADER — reads supplyChainDataSet.xlsx from this same
+   folder via fetch (client-side, with SheetJS), converts the
+   first sheet to row objects, and hands the array to
+   initDashboard(). Requires the page to be served over http(s)
+   (e.g. `python -m http.server`) — browsers block fetch() of
+   local files opened directly via file://.
    ============================================================ */
-const DEFAULT_FILE = 'supplyChainDataSet.xlsx'; // sits next to this HTML file, used when served over http(s)
+const DEFAULT_FILE = 'supplyChainDataSet.xlsx'; // must sit next to index.html
 const loaderEl = document.getElementById('loader');
 const statusEl = document.getElementById('loader-status');
-const dropZone = document.getElementById('drop-zone');
-const fileInput = document.getElementById('file-input');
 
 function setStatus(msg, isErr){
   statusEl.textContent = msg;
@@ -919,49 +902,23 @@ function rowsFromWorkbook(workbook){
 }
 
 function launchDashboard(rows){
-  if(!rows || !rows.length){ setStatus('That file parsed but contained no rows.', true); return; }
+  if(!rows || !rows.length){ setStatus(DEFAULT_FILE + ' parsed but contained no rows.', true); return; }
   try{
     initDashboard(rows);
     loaderEl.classList.add('hidden');
     document.getElementById('app').style.display = '';
   }catch(e){
     console.error(e);
-    setStatus('Could not build the dashboard from this file — check it matches the expected column layout.', true);
+    setStatus('Could not build the dashboard — the file columns don\'t match what app.js expects.', true);
   }
 }
 
-function loadFromArrayBuffer(buf){
-  try{
-    const wb = XLSX.read(buf, { type:'array' });
-    launchDashboard(rowsFromWorkbook(wb));
-  }catch(e){
-    console.error(e);
-    setStatus('Could not read that file as an Excel workbook.', true);
-  }
-}
-
-function loadFromFile(file){
-  setStatus('Reading ' + file.name + '…');
-  const reader = new FileReader();
-  reader.onload = e => loadFromArrayBuffer(new Uint8Array(e.target.result));
-  reader.onerror = () => setStatus('Could not read that file.', true);
-  reader.readAsArrayBuffer(file);
-}
-
-// 1) try to auto-fetch the workbook if this page is served over http(s)
 fetch(DEFAULT_FILE).then(res=>{
   if(!res.ok) throw new Error('not found');
   return res.arrayBuffer();
 }).then(buf=>{
-  loadFromArrayBuffer(new Uint8Array(buf));
+  const wb = XLSX.read(new Uint8Array(buf), { type:'array' });
+  launchDashboard(rowsFromWorkbook(wb));
 }).catch(()=>{
-  // 2) fall back to manual drag-and-drop / file picker (needed when opened directly via file://)
-  setStatus('Auto-load unavailable here — drop the workbook below or click to browse.');
+  setStatus('Could not load ' + DEFAULT_FILE + '. Make sure it sits next to index.html and that this page is served over a local web server (not opened directly as a file:// URL).', true);
 });
-
-// manual picker wiring (always active, in case auto-fetch loaded the wrong / stale file)
-dropZone.addEventListener('click', ()=> fileInput.click());
-fileInput.addEventListener('change', e=>{ if(e.target.files[0]) loadFromFile(e.target.files[0]); });
-['dragenter','dragover'].forEach(ev=> dropZone.addEventListener(ev, e=>{ e.preventDefault(); dropZone.classList.add('drag'); }));
-['dragleave','drop'].forEach(ev=> dropZone.addEventListener(ev, e=>{ e.preventDefault(); dropZone.classList.remove('drag'); }));
-dropZone.addEventListener('drop', e=>{ const f = e.dataTransfer.files[0]; if(f) loadFromFile(f); });

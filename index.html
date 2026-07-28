@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supply Chain Intelligence — Consulting Deck</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="vendor/chart.min.js"></script>
+<script src="vendor/xlsx.min.js"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="loader">
+  <div class="loader-card">
+    <p class="eyebrow">Supply Chain Analytics</p>
+    <h2>Load your dataset</h2>
+    <p>Checking for <code>supplyChainDataSet.xlsx</code> next to this file… if that fails (e.g. opened directly from disk), drop the workbook below or browse for it. Nothing is uploaded anywhere — it's parsed entirely in your browser.</p>
+    <div class="drop-zone" id="drop-zone">
+      <div class="dz-icon">.xlsx / .xls</div>
+      <div class="dz-main">Drag & drop your workbook here</div>
+      <div class="dz-sub">or click to browse</div>
+    </div>
+    <input type="file" id="file-input" accept=".xlsx,.xls">
+    <div class="loader-status" id="loader-status">Looking for supplyChainDataSet.xlsx…</div>
+  </div>
+</div>
+
+<div id="app" style="display:none;">
+<header class="masthead">
+  <div class="masthead-top">
+    <div>
+      <p class="eyebrow">Supply Chain Analytics · Consulting-Style Review</p>
+      <h1>End-to-End Supply Chain Performance Deck</h1>
+      <p class="sub">A KPI-driven read of sourcing, inventory, supplier quality, manufacturing and logistics performance — built for operations and analytics review.</p>
+    </div>
+    <div class="masthead-meta">
+      DATASET <span id="meta-rows">—</span> SKUs<br>
+      SUPPLIERS <span id="meta-sup">—</span> · MARKETS <span id="meta-loc">—</span><br>
+      FRAMEWORK <span>SCOR-aligned</span>
+    </div>
+  </div>
+  <nav class="flow-nav" id="flow-nav"></nav>
+</header>
+
+<main id="main"></main>
+
+<div class="dashboard-footer">SOURCE → MAKE → STOCK → DELIVER → OPTIMIZE &nbsp;·&nbsp; Data loaded live from your Excel workbook &nbsp;·&nbsp; All figures approximate, derived from the supplied dataset</div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
